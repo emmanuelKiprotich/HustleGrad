@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/shared/ProtectedRoute';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 import LandingPage        from './components/shared/LandingPage';
 import Register           from './components/auth/Register';
@@ -39,6 +40,7 @@ const App = () => (
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <SpeedInsights />
     </BrowserRouter>
   </AuthProvider>
 );
