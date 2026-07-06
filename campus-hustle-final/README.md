@@ -1,6 +1,6 @@
 # HustleGrad
 
-HustleGrad is a campus student marketplace web application for buying, selling, booking, delivery, payment, and messaging around student-run products and services. It is designed for a polished campus demo with localized pickup zones, seller metrics, profile pictures, M-PESA Daraja checkout, and an AI marketplace helper.
+HustleGrad is a web-based marketplace tailored for university students, enabling them to buy, sell, book, deliver, pay for, and communicate about student-provided products and services. The platform is built to deliver a professional campus experience, featuring designated campus pickup locations, seller performance analytics, user profile photos, M-PESA Daraja payment integration, and an AI-powered marketplace assistant.
 
 ## Features
 
