@@ -30,7 +30,7 @@ const demoChecks = [
   'Frontend is running on port 3000.',
   'Demo database has been seeded with schema.sql.',
   'Email OTP credentials work, or you have a verified local demo account ready.',
-  'Daraja credentials are configured, or you explain the built-in demo fallback.',
+  'Daraja credentials match the selected sandbox or production environment.',
 ];
 
 const PresentationGuide = () => {

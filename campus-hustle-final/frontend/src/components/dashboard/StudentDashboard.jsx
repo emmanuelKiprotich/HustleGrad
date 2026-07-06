@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { bookingsApi, listingsApi, profilesApi } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { GlobalNav, Spinner, Alert, Card, Button, EmptyState, Badge } from '../shared';
+import { normalizePhotoUrl, resolveMediaUrl } from '../../utils/media';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const StudentDashboard = () => {
   const [uploadBusy, setUploadBusy] = useState(false);
   const [uploadMsg, setUploadMsg] = useState('');
   const [uploadErr, setUploadErr] = useState('');
+  const [avatarError, setAvatarError] = useState(false);
 
   const campusZones = [
     'Student Centre (STC)',
@@ -40,11 +42,12 @@ const StudentDashboard = () => {
   };
 
   useEffect(() => { load(); }, []);
+  useEffect(() => { setAvatarError(false); }, [user?.profile_picture_url]);
 
   const handleCreate = async (e) => {
     e.preventDefault(); setFormBusy(true); setFormMsg(''); setFormErr('');
     try {
-      await listingsApi.create(form);
+      await listingsApi.create({ ...form, photo_url: normalizePhotoUrl(form.photo_url) });
       setFormMsg('Listing published!');
       setForm(emptyListingForm);
       load();
@@ -123,8 +126,13 @@ const StudentDashboard = () => {
       <div className="dashboard-page page-enter">
         <div className="dashboard-topbar">
           <div style={{ display:'flex', gap:14, alignItems:'center' }}>
-            {user?.profile_picture_url ? (
-              <img src={user.profile_picture_url} alt="" className="profile-avatar" />
+            {user?.profile_picture_url && !avatarError ? (
+              <img
+                src={resolveMediaUrl(user.profile_picture_url)}
+                alt=""
+                className="profile-avatar"
+                onError={() => setAvatarError(true)}
+              />
             ) : (
               <div className="profile-avatar profile-avatar-fallback" aria-hidden="true">
                 {(user?.name || 'HG').split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase()}
@@ -221,14 +229,14 @@ const StudentDashboard = () => {
                   <div style={{ gridColumn:'1/-1' }}>
                     <label style={{ display:'block', marginBottom:6, fontWeight:600, fontSize:'0.82rem', color:'var(--text-muted)' }}>Listing Photo URL</label>
                     <div className="listing-photo-input-row">
-                      <input type="url" value={form.photo_url.startsWith('data:') ? '' : form.photo_url} onChange={e=>setForm(p=>({...p,photo_url:e.target.value}))} placeholder="https://..." />
+                      <input type="url" value={form.photo_url.startsWith('data:') ? '' : form.photo_url} onChange={e=>setForm(p=>({...p,photo_url:e.target.value}))} onBlur={e=>setForm(p=>({...p,photo_url:normalizePhotoUrl(e.target.value)}))} placeholder="https://..." />
                       <label className="btn btn-neutral" style={{ cursor: photoBusy ? 'not-allowed' : 'pointer' }}>
                         {photoBusy ? 'Reading...' : 'Browse'}
                         <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleListingPhoto} disabled={photoBusy} className="sr-only" />
                       </label>
                     </div>
                     {form.photo_url && (
-                      <img src={form.photo_url} alt="" className="listing-photo-preview" />
+                      <img src={resolveMediaUrl(form.photo_url)} alt="" className="listing-photo-preview" />
                     )}
                   </div>
                   <div>

@@ -16,12 +16,38 @@ const getDarajaBaseUrl = () =>
     ? 'https://api.safaricom.co.ke'
     : 'https://sandbox.safaricom.co.ke';
 
-const hasDarajaCredentials = () =>
-  env.mpesa.consumerKey &&
-  env.mpesa.consumerSecret &&
-  env.mpesa.shortcode &&
-  env.mpesa.passkey &&
-  env.mpesa.callbackUrl;
+const getMissingDarajaConfig = () =>
+  [
+    ['MPESA_CONSUMER_KEY', env.mpesa.consumerKey],
+    ['MPESA_CONSUMER_SECRET', env.mpesa.consumerSecret],
+    ['MPESA_SHORTCODE', env.mpesa.shortcode],
+    ['MPESA_PASSKEY', env.mpesa.passkey],
+    ['MPESA_CALLBACK_URL', env.mpesa.callbackUrl],
+  ]
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
+
+const isUsingDefaultSandboxPasskey = () =>
+  Boolean(env.mpesa.usingDefaultSandboxPasskey);
+
+const readDarajaResponse = async (response) => {
+  const text = await response.text();
+  if (!text) return {};
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { raw: text };
+  }
+};
+
+const getDarajaMessage = (data, fallback) =>
+  data.errorMessage ||
+  data.error_description ||
+  data.ResponseDescription ||
+  data.CustomerMessage ||
+  data.raw ||
+  fallback;
 
 const getDarajaToken = async () => {
   const auth = Buffer
@@ -32,8 +58,15 @@ const getDarajaToken = async () => {
     headers: { Authorization: `Basic ${auth}` },
   });
 
-  if (!response.ok) throw new AppError('Could not authenticate with M-PESA Daraja.', 502);
-  const data = await response.json();
+  const data = await readDarajaResponse(response);
+  if (!response.ok || !data.access_token) {
+    const darajaMessage = getDarajaMessage(data, 'Could not authenticate with M-PESA Daraja.');
+    throw new AppError(
+      `M-PESA Daraja authentication failed (${env.mpesa.environment}). ${darajaMessage}`,
+      response.status === 401 ? 401 : 502
+    );
+  }
+
   return data.access_token;
 };
 
@@ -45,13 +78,12 @@ const initiateMpesa = asyncHandler(async (req, res) => {
   const amount = Math.max(1, Math.round(Number(req.body.amount)));
   if (!Number.isFinite(amount)) throw new AppError('Amount must be a valid number.', 400);
 
-  if (!hasDarajaCredentials()) {
-    return res.status(200).json({
-      success: true,
-      mode: 'demo',
-      message: 'Demo M-PESA request accepted. Add Daraja credentials to send a real STK Push.',
-      checkoutRequestId: `DEMO-${Date.now()}`,
-    });
+  const missingConfig = getMissingDarajaConfig();
+  if (missingConfig.length > 0) {
+    throw new AppError(
+      `M-PESA is not configured. Missing: ${missingConfig.join(', ')}. STK Push requires a Lipa Na M-PESA Online passkey.`,
+      500
+    );
   }
 
   const timestamp = new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14);
@@ -81,9 +113,9 @@ const initiateMpesa = asyncHandler(async (req, res) => {
     }),
   });
 
-  const data = await response.json();
+  const data = await readDarajaResponse(response);
   if (!response.ok || data.ResponseCode !== '0') {
-    throw new AppError(data.errorMessage || data.ResponseDescription || 'M-PESA STK Push failed.', 502);
+    throw new AppError(getDarajaMessage(data, 'M-PESA STK Push failed.'), 502);
   }
 
   res.status(200).json({
@@ -92,6 +124,7 @@ const initiateMpesa = asyncHandler(async (req, res) => {
     message: data.CustomerMessage || 'STK Push sent. Check your phone.',
     checkoutRequestId: data.CheckoutRequestID,
     merchantRequestId: data.MerchantRequestID,
+    usingDefaultSandboxPasskey: isUsingDefaultSandboxPasskey(),
   });
 });
 

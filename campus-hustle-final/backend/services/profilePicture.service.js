@@ -37,7 +37,7 @@ const saveProfilePicture = async ({ userId, dataUrl }) => {
   await fs.mkdir(absoluteDir, { recursive: true });
   await fs.writeFile(absolutePath, fileBuffer);
 
-  return `${env.storage.publicBaseUrl}/uploads/${env.storage.profileBucket}/${filename}`;
+  return `/uploads/${env.storage.profileBucket}/${filename}`;
 };
 
 module.exports = { saveProfilePicture };

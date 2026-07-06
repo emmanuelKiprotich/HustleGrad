@@ -19,7 +19,7 @@ HustleGrad is a campus student marketplace web application for buying, selling, 
 - Seller dashboard metrics and active order completion flow
 - Buyer/seller messaging
 - Booking requests, buyer receipt confirmation, and reviews
-- M-PESA Daraja STK Push checkout with a local demo fallback when credentials are missing
+- M-PESA Daraja STK Push checkout with explicit credential/config validation
 - Floating AI assistant for buyer, seller, delivery, and payment guidance
 - Admin overview for users and listings
 
@@ -98,7 +98,7 @@ MPESA_PASSKEY=your_daraja_passkey
 MPESA_CALLBACK_URL=https://your-public-url.example.com/api/payments/mpesa/callback
 ```
 
-If these M-PESA values are not present, the app returns a successful demo response instead of sending a real STK Push.
+For sandbox, `MPESA_SHORTCODE=174379` uses the standard Daraja test passkey automatically. To force your own sandbox passkey, set `MPESA_USE_CUSTOM_PASSKEY=true`. Production always requires the real Lipa Na M-PESA Online passkey issued for your shortcode. If these M-PESA values do not match the selected sandbox/production environment, checkout fails with a clear backend error.
 
 ## Setup
 

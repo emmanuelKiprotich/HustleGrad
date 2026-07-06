@@ -3,6 +3,37 @@
 
 require('dotenv').config();
 
+const cleanEnv = (key) => {
+  const value = process.env[key];
+  if (!value) return undefined;
+  return value.trim().replace(/^['"]|['"]$/g, '');
+};
+
+const isPlaceholder = (value) => {
+  if (!value) return false;
+  return /^(your_|replace_|changeme|passkey|mpesa_passkey|your-daraja-passkey)/i.test(value);
+};
+
+const getMpesaEnvironment = () => (cleanEnv('MPESA_ENVIRONMENT') || 'sandbox').toLowerCase();
+const getMpesaShortcode = () => cleanEnv('MPESA_SHORTCODE') || '174379';
+const shouldUseDefaultSandboxPasskey = () => {
+  return (
+    getMpesaEnvironment() === 'sandbox' &&
+    getMpesaShortcode() === '174379' &&
+    cleanEnv('MPESA_USE_CUSTOM_PASSKEY') !== 'true'
+  );
+};
+const getMpesaPasskey = () => {
+  const configuredPasskey = cleanEnv('MPESA_PASSKEY');
+
+  if (shouldUseDefaultSandboxPasskey()) {
+    return 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
+  }
+  if (configuredPasskey && !isPlaceholder(configuredPasskey)) return configuredPasskey;
+
+  return undefined;
+};
+
 const required = ['DATABASE_URL', 'JWT_SECRET', 'EMAIL_USER', 'EMAIL_PASS'];
 
 for (const key of required) {
@@ -30,9 +61,9 @@ module.exports = {
   },
 
   storage: {
-    publicBaseUrl: process.env.PUBLIC_BASE_URL || `http://localhost:${parseInt(process.env.PORT, 10) || 5000}`,
-    uploadDir: process.env.UPLOAD_DIR || 'public/uploads',
-    profileBucket: process.env.PROFILE_PICTURE_BUCKET || 'profile-pictures',
+    publicBaseUrl: cleanEnv('PUBLIC_BASE_URL') || `http://localhost:${parseInt(process.env.PORT, 10) || 5000}`,
+    uploadDir: cleanEnv('UPLOAD_DIR') || 'public/uploads',
+    profileBucket: cleanEnv('PROFILE_PICTURE_BUCKET') || 'profile-pictures',
   },
 
   email: {
@@ -42,12 +73,13 @@ module.exports = {
   },
 
   mpesa: {
-    consumerKey: process.env.MPESA_CONSUMER_KEY,
-    consumerSecret: process.env.MPESA_CONSUMER_SECRET,
-    shortcode: process.env.MPESA_SHORTCODE,
-    passkey: process.env.MPESA_PASSKEY,
-    callbackUrl: process.env.MPESA_CALLBACK_URL,
-    environment: process.env.MPESA_ENVIRONMENT || 'sandbox',
+    consumerKey: cleanEnv('MPESA_CONSUMER_KEY'),
+    consumerSecret: cleanEnv('MPESA_CONSUMER_SECRET'),
+    shortcode: getMpesaShortcode(),
+    passkey: getMpesaPasskey(),
+    usingDefaultSandboxPasskey: shouldUseDefaultSandboxPasskey(),
+    callbackUrl: cleanEnv('MPESA_CALLBACK_URL'),
+    environment: getMpesaEnvironment(),
   },
 
   cors: {

@@ -5,6 +5,32 @@ const db = require('../config/db');
 const { AppError, asyncHandler } = require('../utils/errors');
 const { requireFields } = require('../utils/validate');
 
+const normalizePhotoUrl = (url) => {
+  const raw = String(url || '').trim();
+  if (!raw || raw.startsWith('data:image/')) return raw || null;
+
+  const withProtocol = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+
+  try {
+    const parsed = new URL(withProtocol);
+
+    if (parsed.hostname.includes('drive.google.com')) {
+      const fileMatch = parsed.pathname.match(/\/file\/d\/([^/]+)/);
+      const id = parsed.searchParams.get('id') || fileMatch?.[1];
+      if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
+    }
+
+    if (parsed.hostname.includes('dropbox.com')) {
+      parsed.searchParams.set('raw', '1');
+      return parsed.toString();
+    }
+
+    return parsed.toString();
+  } catch {
+    throw new AppError('Listing photo must be a valid image URL.', 400);
+  }
+};
+
 // ─── Public: search/filter listings ─────────────────────────────────────────
 
 const search = asyncHandler(async (req, res) => {
@@ -166,7 +192,7 @@ const create = asyncHandler(async (req, res) => {
       title.trim(),
       description.trim(),
       parsedPrice,
-      photo_url?.trim() || null,
+      normalizePhotoUrl(photo_url),
       contact_phone?.trim() || null,
       Boolean(offers_delivery),
       parsedDeliveryFee,

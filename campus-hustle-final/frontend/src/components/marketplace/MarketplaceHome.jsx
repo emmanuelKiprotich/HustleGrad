@@ -3,6 +3,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listingsApi } from '../../api';
 import { GlobalNav, Spinner, Alert, EmptyState, Button } from '../shared';
+import { resolveMediaUrl } from '../../utils/media';
 
 const CATEGORIES = [
   { id: '',  name: '🌐 All',          color: '#0288d1' },
@@ -23,7 +24,7 @@ const CAMPUS_ZONES = [
 const ListingCard = ({ listing, onClick }) => (
   <button className="listing-card reveal" onClick={onClick}>
     {listing.photo_url && (
-      <img src={listing.photo_url} alt="" className="listing-photo" loading="lazy" />
+      <img src={resolveMediaUrl(listing.photo_url)} alt="" className="listing-photo" loading="lazy" />
     )}
     <div className="card-category">{listing.category_name}</div>
     <h3>{listing.title}</h3>
@@ -148,7 +149,7 @@ const MarketplaceHome = () => {
               {topHustlers.map((hustler, index) => (
                 <div key={hustler.id} className="top-hustler">
                   {hustler.profile_picture_url ? (
-                    <img src={hustler.profile_picture_url} alt="" />
+                    <img src={resolveMediaUrl(hustler.profile_picture_url)} alt="" />
                   ) : (
                     <span>{hustler.name.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase()}</span>
                   )}

@@ -20,7 +20,9 @@ const paymentsRoutes = require('./routes/payments.routes');
 const app = express();
 
 // ─── Security & parsing middleware ───────────────────────────────────────────
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 
 // DEFINING ALLOWED ORIGINS
 const allowedOrigins = [

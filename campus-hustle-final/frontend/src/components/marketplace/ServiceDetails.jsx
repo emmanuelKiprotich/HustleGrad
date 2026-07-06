@@ -5,6 +5,7 @@ import { listingsApi, bookingsApi, messagesApi, paymentsApi } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { Spinner, Alert, Card, Button } from '../shared';
 import ReviewSystem from './ReviewSystem';
+import { resolveMediaUrl } from '../../utils/media';
 
 const ServiceDetails = () => {
   const { id }   = useParams();
@@ -27,6 +28,7 @@ const ServiceDetails = () => {
   const [msgContent, setMsgContent] = useState('');
   const [msgStatus,  setMsgStatus]  = useState('');
   const [paymentState, setPaymentState] = useState('idle');
+  const [paymentMsg, setPaymentMsg] = useState('');
   const [mpesaPhone, setMpesaPhone] = useState('');
   const [paymentError, setPaymentError] = useState('');
   const [requestDelivery, setRequestDelivery] = useState(false);
@@ -110,6 +112,7 @@ const ServiceDetails = () => {
     }
 
     setPaymentError('');
+    setPaymentMsg('');
     setPaymentState('sending');
     try {
       const total = Number(listing.price) + (requestDelivery ? Number(listing.delivery_fee || 0) : 0);
@@ -120,7 +123,8 @@ const ServiceDetails = () => {
         description: `Payment for ${listing.title}`,
       });
       setCheckoutId(res.data.checkoutRequestId || '');
-      setPaymentState('success');
+      setPaymentMsg(res.data.message || 'STK Push sent. Check your phone.');
+      setPaymentState('sent');
     } catch (err) {
       setPaymentError(err.message);
       setPaymentState('idle');
@@ -145,7 +149,7 @@ const ServiceDetails = () => {
         {/* ── Listing info ── */}
         <Card>
           {listing.photo_url && (
-            <img src={listing.photo_url} alt="" style={styles.listingPhoto} />
+            <img src={resolveMediaUrl(listing.photo_url)} alt="" style={styles.listingPhoto} />
           )}
           <span style={styles.categoryTag}>{listing.category_name}</span>
           <h1 style={styles.title}>{listing.title}</h1>
@@ -238,16 +242,17 @@ const ServiceDetails = () => {
                     <span>Check {mpesaPhone} and enter your M-PESA PIN to continue.</span>
                   </div>
                 )}
-                {paymentState === 'success' && (
+                {paymentState === 'sent' && (
                   <div className="mpesa-success" role="status" aria-live="polite">
                     <div className="mpesa-check">✓</div>
-                    <h4>Payment secured in HustleGrad Escrow</h4>
-                    <p>Your payment from {mpesaPhone} is safely held while you {requestDelivery ? 'wait for delivery' : `meet at ${listing.campus_zone || 'the agreed campus zone'}`}. The seller is paid after you confirm everything is okay.</p>
+                    <h4>M-PESA STK Push Sent</h4>
+                    <p>{paymentMsg}</p>
+                    <p>Approve the prompt on {mpesaPhone}. After payment, use booking and messaging to coordinate {requestDelivery ? 'delivery' : `pickup at ${listing.campus_zone || 'the agreed campus zone'}`}.</p>
                     {checkoutId && <small>Checkout ID: {checkoutId}</small>}
                     <div className="escrow-steps">
-                      <span>1. STK Push approved</span>
-                      <span>2. Funds held safely</span>
-                      <span>3. Release after pickup</span>
+                      <span>1. STK Push sent</span>
+                      <span>2. Approve on phone</span>
+                      <span>3. Confirm order received</span>
                     </div>
                   </div>
                 )}
