@@ -39,7 +39,6 @@ const LandingPage = () => {
         <Link to="/" className="nav-logo"><img src="/logo.svg" alt="" className="nav-logo-mark" />Hustle<span>Grad</span></Link>
         <div className="nav-links">
           <Link to="/marketplace" className="nav-link">Browse</Link>
-          <Link to="/presentation" className="nav-link">Demo</Link>
           <Link to="/contact" className="nav-link">Contact</Link>
           <Link to="/login"    className="nav-link">Sign In</Link>
           <Link to="/register" className="btn btn-primary btn-sm">Get Started</Link>

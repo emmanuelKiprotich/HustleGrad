@@ -19,6 +19,7 @@ const StudentDashboard = () => {
   const [formMsg, setFormMsg]  = useState('');
   const [formErr, setFormErr]  = useState('');
   const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoPreviewErr, setPhotoPreviewErr] = useState('');
   const [orderBusyId, setOrderBusyId] = useState(null);
   const [uploadBusy, setUploadBusy] = useState(false);
   const [uploadMsg, setUploadMsg] = useState('');
@@ -50,6 +51,7 @@ const StudentDashboard = () => {
       await listingsApi.create({ ...form, photo_url: normalizePhotoUrl(form.photo_url) });
       setFormMsg('Listing published!');
       setForm(emptyListingForm);
+      setPhotoPreviewErr('');
       load();
       setTimeout(() => setShowForm(false), 1500);
     } catch (err) { setFormErr(err.message); }
@@ -73,6 +75,7 @@ const StudentDashboard = () => {
       });
 
       setForm((prev) => ({ ...prev, photo_url: imageDataUrl }));
+      setPhotoPreviewErr('');
     } catch (err) {
       setFormErr(err.message);
     } finally {
@@ -229,14 +232,32 @@ const StudentDashboard = () => {
                   <div style={{ gridColumn:'1/-1' }}>
                     <label style={{ display:'block', marginBottom:6, fontWeight:600, fontSize:'0.82rem', color:'var(--text-muted)' }}>Listing Photo URL</label>
                     <div className="listing-photo-input-row">
-                      <input type="url" value={form.photo_url.startsWith('data:') ? '' : form.photo_url} onChange={e=>setForm(p=>({...p,photo_url:e.target.value}))} onBlur={e=>setForm(p=>({...p,photo_url:normalizePhotoUrl(e.target.value)}))} placeholder="https://..." />
+                      <input
+                        type="url"
+                        value={form.photo_url.startsWith('data:') ? '' : form.photo_url}
+                        onChange={e=>{
+                          setPhotoPreviewErr('');
+                          setForm(p=>({...p,photo_url:e.target.value}));
+                        }}
+                        onBlur={e=>setForm(p=>({...p,photo_url:normalizePhotoUrl(e.target.value)}))}
+                        placeholder="https://..."
+                      />
                       <label className="btn btn-neutral" style={{ cursor: photoBusy ? 'not-allowed' : 'pointer' }}>
                         {photoBusy ? 'Reading...' : 'Browse'}
                         <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleListingPhoto} disabled={photoBusy} className="sr-only" />
                       </label>
                     </div>
                     {form.photo_url && (
-                      <img src={resolveMediaUrl(form.photo_url)} alt="" className="listing-photo-preview" />
+                      <>
+                        <img
+                          src={resolveMediaUrl(form.photo_url)}
+                          alt=""
+                          className="listing-photo-preview"
+                          onError={() => setPhotoPreviewErr('Preview could not load. Use a direct public image link ending in PNG, JPG, or WebP, or upload the file instead.')}
+                          onLoad={() => setPhotoPreviewErr('')}
+                        />
+                        {photoPreviewErr && <p className="field-hint">{photoPreviewErr}</p>}
+                      </>
                     )}
                   </div>
                   <div>

@@ -13,6 +13,11 @@ const normalizePhotoUrl = (url) => {
 
   try {
     const parsed = new URL(withProtocol);
+    const googleImageUrl = parsed.searchParams.get('imgurl');
+
+    if (googleImageUrl && parsed.hostname.includes('google.')) {
+      return normalizePhotoUrl(googleImageUrl);
+    }
 
     if (parsed.hostname.includes('drive.google.com')) {
       const fileMatch = parsed.pathname.match(/\/file\/d\/([^/]+)/);

@@ -761,6 +761,13 @@ td { padding: 13px 14px; color: var(--text-base); vertical-align: middle; }
   margin: -2px 0 10px;
 }
 
+.field-hint {
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
 .ai-assistant {
   position: fixed;
   right: 18px;

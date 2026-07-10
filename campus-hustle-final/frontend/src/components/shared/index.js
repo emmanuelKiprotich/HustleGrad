@@ -79,7 +79,6 @@ export const GlobalNav = () => {
       </Link>
       <div className="nav-links">
         <Link to="/marketplace" className={`nav-link ${isActive('/marketplace')}`}>Browse</Link>
-        <Link to="/presentation" className={`nav-link ${isActive('/presentation')}`}>Demo</Link>
         <Link to="/contact" className={`nav-link ${isActive('/contact')}`}>Contact</Link>
         {user ? (
           <>
