@@ -1,0 +1,127 @@
+If you're documenting **M-PESA Daraja API integration** for a project like HustleGrad, you can present it in a clear step-by-step format like this:
+
+## M-PESA Daraja API Integration Process
+
+### Step 1: Register as a Safaricom Developer
+
+* Visit the Safaricom Developer Portal.
+* Create a developer account.
+* Verify your email address and log in.
+
+### Step 2: Create an Application
+
+* Navigate to **My Apps**.
+* Create a new application.
+* Select the required APIs (Lipa na M-PESA Online, OAuth, etc.).
+* Obtain the **Consumer Key** and **Consumer Secret**.
+
+### Step 3: Generate an Access Token
+
+* Send a request to the OAuth endpoint using the Consumer Key and Consumer Secret.
+* Receive an access token.
+* Include the token in the Authorization header of subsequent API requests.
+
+### Step 4: Generate the Password
+
+* Create the password by combining:
+
+  * Business Short Code
+  * Passkey
+  * Current Timestamp
+* Encode the combined string using Base64.
+
+### Step 5: Prepare the STK Push Request
+
+Include the following information:
+
+* Business Short Code
+* Password
+* Timestamp
+* Transaction Type
+* Amount
+* Customer Phone Number
+* Callback URL
+* Account Reference
+* Transaction Description
+
+### Step 6: Send the STK Push Request
+
+* Send an HTTPS POST request to the Lipa na M-PESA Online endpoint.
+* Safaricom sends a payment prompt (STK Push) to the customer's phone.
+
+### Step 7: Customer Authorizes Payment
+
+* The customer enters their M-PESA PIN.
+* Safaricom processes the payment request.
+
+### Step 8: Receive Callback Response
+
+* Safaricom sends the transaction result to the Callback URL.
+* The application validates the response.
+* Store the transaction details in the database.
+
+### Step 9: Update Order Status
+
+* If payment is successful:
+
+  * Mark the order as **Paid**.
+  * Generate a receipt.
+  * Notify both buyer and seller.
+* If payment fails:
+
+  * Mark the transaction as **Failed**.
+  * Display an appropriate error message.
+
+### Step 10: Display Payment Confirmation
+
+* Show the customer a payment success or failure message.
+* Save the payment record for future reference in the transaction history.
+
+---
+
+### Process Flow
+
+```text
+Customer
+    │
+    ▼
+Select Product/Service
+    │
+    ▼
+Proceed to Checkout
+    │
+    ▼
+Generate Access Token
+    │
+    ▼
+Generate Password
+    │
+    ▼
+Send STK Push Request
+    │
+    ▼
+Safaricom Daraja API
+    │
+    ▼
+STK Push Sent to Customer Phone
+    │
+    ▼
+Customer Enters M-PESA PIN
+    │
+    ▼
+Payment Processed
+    │
+    ▼
+Callback Sent to HustleGrad Server
+    │
+    ▼
+Verify Transaction
+    │
+    ▼
+Update Database
+    │
+    ▼
+Display Payment Confirmation
+```
+
+This format is suitable for inclusion in the **Methodology**, **System Design**, or **Payment Module Implementation** chapter of a university project report.
